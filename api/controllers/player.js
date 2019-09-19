@@ -1,6 +1,26 @@
 const Player = require('../models/player.js');
 
-createPlayer = (req, res) => {
+createPlayer = (name, guid, kills = 0, deaths = 0) => {
+
+    const player = {
+        name: name,
+        guid: guid,
+        kills: kills,
+        deaths: deaths,
+    }
+
+    Player.create(player, (err, player) => {
+        if (err) return false;
+        return {
+            name: player.name,
+            guid: player.guid,
+            kills: player.kills,
+            deaths: player.deaths
+        };
+    })
+}
+
+createPlayerRequest = (req, res) => {
 
     const player = {
         name: req.body.name,
@@ -19,6 +39,13 @@ createPlayer = (req, res) => {
         });
     })
 }
+
+// getPlayerByGUID = guid => {
+//     Player.findOne({ guid: guid }, (err, player) => {
+//         if (err) return false;
+//         return player
+//     })
+// }
 
 getPlayerByGUID = (req, res) => {
     Player.findOne({ guid: req.params.guid }, (err, player) => {
@@ -45,8 +72,16 @@ listPlayers = (req, res) => {
     })
 }
 
+updatePlayersKills = (guid, kills) => {
+    Player.findOneAndUpdate({ guid: guid }, {kills: kills}, {useFindAndModify: false}, (err, player) => {
+        if (err) return false;
+        return player
+    })
+}
+
 module.exports = {
     createPlayer,
     getPlayerByGUID,
-    listPlayers
+    listPlayers,
+    updatePlayersKills
 }

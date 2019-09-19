@@ -1,5 +1,6 @@
-const authRoutes = require('./auth')
-const userRoutes = require('./user')
+const authRoutes = require('./auth.js')
+const userRoutes = require('./user.js')
+const playerRoutes = require('./player.js')
 // const verifyToken = require('../middleware/verifyToken')
 // const checkIfAdmin = require('../middleware/accessRights')
 

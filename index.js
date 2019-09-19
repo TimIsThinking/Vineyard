@@ -3,6 +3,9 @@ dotenv.config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const request = require('request');
+
+const playerController = require('./api/controllers/player.js');
 
 const { fileCrawler } = require('./lib/file-crawler.js');
 
@@ -18,21 +21,22 @@ const processLine = async line => {
 
         const lineArray = line.split(' ');
 
-        const player1 = line.slice(11, line.indexOf('<') - 1);
-        const player2 = lineArray[lineArray.length - 1];
+        const playerName1 = line.slice(11, line.indexOf('<') - 1);
+        const playerName2 = lineArray[lineArray.length - 1];
 
-        console.log('player1', player1, 'has killed', 'player2', player2);
+        console.log('player1', playerName1, 'has killed', 'player2', playerName2);
 
         try {
             // const guid1 = onlinePlayers.find(player => player.name === player1).guid;
-            onlinePlayers.find(player => player.name === player1).kills++
-            // TODO: Update database
+            onlinePlayers.find(player => player.name === playerName1).kills++
+            const player1 = onlinePlayers.find(player => player.name === playerName1);
+            playerController.updatePlayersKills(player1.guid, player1.kills);
         } catch(e) {
             console.log('Player 1 not online!', e);
         }
 
         try {
-            const guid2 = onlinePlayers.find(player => player.name === player2).guid;
+            const guid2 = onlinePlayers.find(player => player.name === playerName2).guid;
             // TODO: Update database
         } catch(e) {
             console.log('Player 2 not online!', e);
@@ -44,24 +48,38 @@ const processLine = async line => {
 
         const lineArray = line.split(' ');
 
-        const player = line.slice(11, line.indexOf(' has '));
+        const playerName = lineArray[2];
         const guid = lineArray[lineArray.length - 1];
 
-        onlinePlayers.push({
-            name: player,
-            guid: guid,
-            kills: 0,
-            deaths: 0
-        });
+        request(`http://localhost:3000/players/${guid}`, {}, (err, res, body) => {
+            const data = JSON.parse(body);
+            let player;
+            if (err) {
+                playerController.createPlayer(playerName, guid);
+                player = {
+                    name: playerName,
+                    guid: guid,
+                    kills: 0,
+                    deaths: 0
+                };
+            } else {
+                player = {
+                    name: playerName,
+                    guid: guid,
+                    kills: data.kills,
+                    deaths: data.deaths
+                }
+            }
+
+            onlinePlayers.push(player);
+        })
 
     } else if (line.includes('has left the game with ID:')) {
         // Player left
         console.log('PLAYER LEFT');
 
         const lineArray = line.split(' ');
-
         const guid = lineArray[lineArray.length - 1];
-
         onlinePlayers.splice(onlinePlayers.findIndex(player => player.guid = guid), 1);
 
     } else if (line.includes(' Changed the map to ')) {
@@ -80,15 +98,15 @@ const processLine = async line => {
 
 fileCrawler(processLine);
 
-// mongoose.connect(process.env.MONGODB_URL);
+mongoose.connect(process.env.MONGODB_URL, { useNewUrlParser: true, useUnifiedTopology: true });
 
-// const app = express();
+const app = express();
 
-// app.use(bodyParser.urlencoded({ extended: false }));
-// app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
-// require('./api/routes')(app);
+require('./api/routes')(app);
 
-// const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3000;
 
-// app.listen(port, () => console.log('Vineyard RESTful API server started on: ' + port));
+app.listen(port, () => console.log('Vineyard RESTful API server started on: ' + port));
