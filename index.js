@@ -102,21 +102,26 @@ const readDailyLogFile = async directory => {
 
     let currentLogFileName;
 
-    setInterval(() => {
-        const now = new Date;
-        let day = now.getDate();
-        let month = now.getMonth() + 1;
+    const getCurrentLogFile = () => {
+        const date = new Date;
+        const offset = (new Date().getTimezoneOffset() / 60) * -1;
+        const localDate = new Date(date.getTime() + offset);
+        let day = localDate.getDate();
+        let month = localDate.getMonth() + 1;
         day < 10 && (day = `0${day}`);
         month < 10 && (month = `0${month}`);
-        const year = `${now.getFullYear()}`.slice(2);
-        logFileName = `server_log_${month}_${day}_${year}.txt`;
+        const year = `${localDate.getFullYear()}`.slice(2);
+        logFileName = `${directory}/server_log_${month}_${day}_${year}.txt`;
 
         if (currentLogFileName !== logFileName) {
+			currentLogFileName = logFileName;
             console.log('Reading log file:', logFileName);
-            fileCrawler(`${directory}/${logFileName}`, processLine);
+            fileCrawler(logFileName, processLine);
         }
+    };
 
-    }, 60000)
+    getCurrentLogFile();
+    setInterval(getCurrentLogFile, 60000)
 }
 
 readDailyLogFile(process.env.LOG_FILE_LOCATION);
