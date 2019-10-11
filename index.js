@@ -98,7 +98,7 @@ const processLine = async line => {
     }
 }
 
-const readDailyLogFile = async () => {
+const readDailyLogFile = async directory => {
 
     let currentLogFileName;
 
@@ -112,15 +112,20 @@ const readDailyLogFile = async () => {
         logFileName = `server_log_${month}_${day}_${year}`;
 
         if (currentLogFileName !== logFileName) {
-            fileCrawler(logFileName);
+            fileCrawler(`${directory}/${logFileName}`);
         }
 
     }, 60000)
 }
 
-readDailyLogFile();
+readDailyLogFile(process.env.LOG_FILE_LOCATION);
 
-mongoose.connect(process.env.MONGODB_URL, { useNewUrlParser: true, useUnifiedTopology: true });
+try {
+    mongoose.connect(process.env.MONGODB_URL, { useNewUrlParser: true, useUnifiedTopology: true });
+} catch (e) {
+    console.log('Database connection error');
+    console.log(e);
+}
 
 const app = express();
 
