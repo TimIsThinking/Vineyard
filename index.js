@@ -109,10 +109,11 @@ const readDailyLogFile = async directory => {
         day < 10 && (day = `0${day}`);
         month < 10 && (month = `0${month}`);
         const year = `${now.getFullYear()}`.slice(2);
-        logFileName = `server_log_${month}_${day}_${year}`;
+        logFileName = `server_log_${month}_${day}_${year}.txt`;
 
         if (currentLogFileName !== logFileName) {
-            fileCrawler(`${directory}/${logFileName}`);
+            console.log('Reading log file:', logFileName);
+            fileCrawler(`${directory}/${logFileName}`, processLine);
         }
 
     }, 60000)
