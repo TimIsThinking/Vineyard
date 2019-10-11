@@ -11,10 +11,11 @@ const { fileCrawler } = require('./lib/file-crawler.js');
 
 let onlinePlayers = [];
 
-const logOnlinePlayers = async () => setInterval(() => console.log('onlinePlayers', onlinePlayers), 10000);
+const logOnlinePlayers = async () => setInterval(() => console.log('onlinePlayers', onlinePlayers), 60000);
 logOnlinePlayers();
 
 const processLine = async line => {
+    console.log('line:', line);
     if (line.includes('<img=ico_swordone>') || line.includes('<img=ico_spear>') || line.includes('<img=ico_')) {
         // If a kill takes place
         console.log('PLAYER KILLED');
@@ -36,8 +37,9 @@ const processLine = async line => {
         }
 
         try {
-            const guid2 = onlinePlayers.find(player => player.name === playerName2).guid;
-            // TODO: Update database
+            onlinePlayers.find(player => player.name === playerName2).deaths++
+            const player2 = onlinePlayers.find(player => player.name === playerName1);
+            playerController.updatePlayersDeaths(player2.guid, player2.deaths);
         } catch(e) {
             console.log('Player 2 not online!', e);
         }
@@ -96,7 +98,27 @@ const processLine = async line => {
     }
 }
 
-fileCrawler(processLine);
+const readDailyLogFile = async () => {
+
+    let currentLogFileName;
+
+    setInterval(() => {
+        const now = new Date;
+        let day = now.getDate();
+        let month = now.getMonth() + 1;
+        day < 10 && (day = `0${day}`);
+        month < 10 && (month = `0${month}`);
+        const year = `${now.getFullYear()}`.slice(2);
+        logFileName = `server_log_${month}_${day}_${year}`;
+
+        if (currentLogFileName !== logFileName) {
+            fileCrawler(logFileName);
+        }
+
+    }, 60000)
+}
+
+readDailyLogFile();
 
 mongoose.connect(process.env.MONGODB_URL, { useNewUrlParser: true, useUnifiedTopology: true });
 

@@ -79,6 +79,14 @@ updatePlayersKills = (guid, kills) => {
     })
 }
 
+updatePlayersDeaths = (guid, deaths) => {
+    Player.findOneAndUpdate({ guid: guid }, {deaths: deaths}, {useFindAndModify: false}, (err, player) => {
+        if (err) return false;
+        return player
+    })
+}
+
+
 module.exports = {
     createPlayer,
     getPlayerByGUID,
