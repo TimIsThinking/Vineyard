@@ -24,7 +24,7 @@
     "dotenv": "^6.0.0",
     "express": "^4.16.3",
     "jsonwebtoken": "^8.3.0",
-    "mongoose": "^5.7.1",
+    "mongoose": "^5.7.5",
     "node-watch": "^0.6.3",
     "read-last-lines": "^1.7.1"
   },
